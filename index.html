@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>TPCODL KENDRAPARA – LT LINE PTW MANAGEMENT SYSTEM</title>
+  <meta name="theme-color" content="#1e3a8a" />
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <!-- SheetJS (Excel .xlsx Export) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- jsPDF & AutoTable (PDF .pdf Export) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <!-- QRCode.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <style>
+    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+    .pulse-dot { animation: pulse 1.5s infinite; }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.35); opacity: 0.55; }
+    }
+    @media print {
+      header, .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- ================= TOP HEADER ================= -->
+  <header class="bg-blue-900 text-white shadow-lg sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-3 py-2.5 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-full bg-yellow-400 text-blue-950 flex items-center justify-center font-extrabold text-lg shadow">
+          <i class="fa-solid fa-bolt"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-sm md:text-lg leading-tight tracking-wide">TPCODL KENDRAPARA</h1>
+          <p class="text-[11px] text-yellow-300 font-medium">Digital PTW | Live Monitoring | Safety First</p>
+        </div>
+      </div>
+
+      <div id="headerUserControls" class="hidden flex items-center space-x-2 md:space-x-3">
+        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot mr-1.5"></span> LIVE
+        </span>
+        <button onclick="openNotificationsModal()" class="relative p-2 rounded-lg bg-blue-800 hover:bg-blue-700">
+          <i class="fa-solid fa-bell text-sm"></i>
+          <span id="notifCountBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 rounded-full">0</span>
+        </button>
+        <div class="hidden md:block text-right text-xs">
+          <div id="currentUserName" class="font-bold">User</div>
+          <div id="currentUserRole" class="text-blue-200 text-[10px] uppercase">Role</div>
+        </div>
+        <button onclick="handleLogout()" title="Logout" class="p-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-semibold">
+          <i class="fa-solid fa-power-off"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= EMERGENCY BROADCAST BANNER ================= -->
+  <div id="emergencyBanner" class="hidden bg-red-600 text-white px-4 py-2 text-center text-xs md:text-sm font-bold flex items-center justify-center space-x-2 shadow-md">
+    <i class="fa-solid fa-triangle-exclamation animate-bounce"></i>
+    <span id="emergencyBannerText">EMERGENCY SAFETY ALERT</span>
+  </div>
+
+  <!-- ================= LOADING VIEW ================= -->
+  <div id="loadingView" class="flex-1 flex flex-col items-center justify-center p-6">
+    <div class="w-12 h-12 border-4 border-blue-900 border-t-transparent rounded-full animate-spin mb-4"></div>
+    <p class="text-sm font-semibold text-slate-600">Connecting to TPCODL Kendrapara Cloud Database...</p>
+  </div>
+
+  <!-- ================= 1. INITIAL SUPER ADMIN BOOTSTRAP SCREEN ================= -->
+  <div id="bootstrapView" class="hidden flex-1 flex items-center justify-center p-4">
+    <div class="max-w-lg w-full bg-white rounded-2xl shadow-xl border border-slate-200 p-6">
+      <div class="flex items-center space-x-3 mb-4 text-blue-900">
+        <i class="fa-solid fa-shield-halved text-3xl"></i>
+        <div>
+          <h2 class="text-lg font-extrabold">Initial Super Admin Setup</h2>
+          <p class="text-xs text-slate-500">First-Time System Bootstrap (Strictly 1 Account Only)</p>
+        </div>
+      </div>
+
+      <div class="bg-amber-50 border-l-4 border-amber-500 p-3 rounded text-xs text-amber-900 mb-4">
+        <strong>CRITICAL SECURITY NOTICE:</strong> Below is your App-Generated Super Password. It will be shown <strong>ONLY ONCE</strong>. Copy it and download the recovery file before creating the Single Super Admin account.
+      </div>
+
+      <div class="bg-slate-900 text-yellow-400 font-mono text-center text-base md:text-lg font-bold py-3 px-4 rounded-xl mb-3 tracking-wider select-all" id="generatedSuperPassDisplay">
+        GENERATING...
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 mb-4">
+        <button type="button" onclick="copySuperPasswordBootstrap()" class="py-2 px-3 bg-blue-100 hover:bg-blue-200 text-blue-900 font-bold rounded-lg text-xs flex items-center justify-center">
+          <i class="fa-regular fa-copy mr-1.5"></i> Copy Super Password
+        </button>
+        <button type="button" onclick="downloadRecoveryKeyBootstrap()" class="py-2 px-3 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-bold rounded-lg text-xs flex items-center justify-center">
+          <i class="fa-solid fa-download mr-1.5"></i> Download .TXT Key
+        </button>
+      </div>
+
+      <form onsubmit="handleBootstrapSubmit(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="font-bold block mb-1">Super Admin Full Name *</label>
+          <input type="text" id="saName" required placeholder="e.g., Subhrajeet Das" class="w-full border rounded-lg px-3 py-2" />
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label class="font-bold block mb-1">10-Digit Mobile Number *</label>
+            <input type="tel" id="saMobile" required pattern="[0-9]{10}" maxlength="10" placeholder="10-digit mobile" class="w-full border rounded-lg px-3 py-2" />
+          </div>
+          <div>
+            <label class="font-bold block mb-1">Employee ID (Optional)</label>
+            <input type="text" id="saEmpId" placeholder="Optional" class="w-full border rounded-lg px-3 py-2" />
+          </div>
+        </div>
+        <div>
+          <label class="font-bold block mb-1">Designation *</label>
+          <input type="text" id="saDesignation" required placeholder="e.g., Safety Officer / Division Admin" class="w-full border rounded-lg px-3 py-2" />
+        </div>
+        <div>
+          <label class="font-bold block mb-1">Account Login Password (min 6 chars) *</label>
+          <input type="password" id="saLoginPassword" required minlength="6" placeholder="Enter login password" class="w-full border rounded-lg px-3 py-2" />
+        </div>
+
+        <div class="space-y-1.5 pt-2 border-t">
+          <label class="flex items-center space-x-2 cursor-pointer">
+            <input type="checkbox" id="chkCopiedSuper" required class="rounded text-blue-900" />
+            <span>I have copied the App-Generated Super Password safely.</span>
+          </label>
+          <label class="flex items-center space-x-2 cursor-pointer">
+            <input type="checkbox" id="chkDownloadedSuper" required class="rounded text-blue-900" />
+            <span>I have downloaded the Recovery Key (.txt) file.</span>
+          </label>
+        </div>
+
+        <button type="submit" class="w-full py-2.5 bg-blue-900 hover:bg-blue-800 text-white font-bold rounded-xl shadow mt-2">
+          Initialize System & Create Single Super Admin
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= 2. LOGIN & REGISTRATION VIEW ================= -->
+  <div id="authView" class="hidden flex-1 flex items-center justify-center p-4">
+    <div class="max-w-md w-full bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+      <div class="flex border-b">
+        <button id="tabLoginBtn" onclick="switchAuthTab('login')" class="flex-1 py-3 font-bold text-xs uppercase border-b-2 border-blue-900 text-blue-900 bg-blue-50/50">
+          Member Login
+        </button>
+        <button id="tabSignupBtn" onclick="switchAuthTab('signup')" class="flex-1 py-3 font-bold text-xs uppercase text-slate-500 hover:text-slate-800">
+          Create Account
+        </button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="loginForm" onsubmit="handleLogin(event)" class="p-6 space-y-4 text-xs">
+        <div>
+          <label class="font-bold block mb-1">Registered 10-Digit Mobile Number *</label>
+          <input type="tel" id="loginMobile" required pattern="[0-9]{10}" maxlength="10" placeholder="Enter 10-digit mobile number" class="w-full border rounded-lg px-3 py-2.5" />
+        </div>
+        <div>
+          <label class="font-bold block mb-1">Password *</label>
+          <input type="password" id="loginPassword" required placeholder="Enter password" class="w-full border rounded-lg px-3 py-2.5" />
+        </div>
+        <button type="submit" class="w-full py-2.5 bg-blue-900 hover:bg-blue-800 text-white font-bold rounded-xl shadow">
+          <i class="fa-solid fa-right-to-bracket mr-1.5"></i> Sign In
+        </button>
+      </form>
+
+      <!-- Signup Form (Employee ID Optional) -->
+      <form id="signupForm" onsubmit="handleSignup(event)" class="hidden p-6 space-y-3 text-xs">
+        <div>
+          <label class="font-bold block mb-1">Full Name *</label>
+          <input type="text" id="regName" required placeholder="Enter full name" class="w-full border rounded-lg px-3 py-2" />
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="font-bold block mb-1">Employee ID <span class="text-slate-400 font-normal">(Optional)</span></label>
+            <input type="text" id="regEmpId" placeholder="Leave blank if none" class="w-full border rounded-lg px-3 py-2" />
+          </div>
+          <div>
+            <label class="font-bold block mb-1">Mobile Number *</label>
+            <input type="tel" id="regMobile" required pattern="[0-9]{10}" maxlength="10" placeholder="10-digit mobile" class="w-full border rounded-lg px-3 py-2" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="font-bold block mb-1">Designation *</label>
+            <input type="text" id="regDesignation" required placeholder="e.g. Lineman / JE" class="w-full border rounded-lg px-3 py-2" />
+          </div>
+          <div>
+            <label class="font-bold block mb-1">Division *</label>
+            <select id="regDivision" required class="w-full border rounded-lg px-3 py-2 bg-slate-50">
+              <option value="Kendrapara">Kendrapara</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="font-bold block mb-1">Subdivision *</label>
+            <select id="regSubdivision" required onchange="populateSectionDropdown('regSubdivision','regSection')" class="w-full border rounded-lg px-3 py-2">
+              <option value="">Select Subdivision</option>
+            </select>
+          </div>
+          <div>
+            <label class="font-bold block mb-1">Section *</label>
+            <select id="regSection" required class="w-full border rounded-lg px-3 py-2">
+              <option value="">Select Section</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="font-bold block mb-1">Create Password (min 6 chars) *</label>
+          <input type="password" id="regPassword" required minlength="6" placeholder="Minimum 6 characters" class="w-full border rounded-lg px-3 py-2" />
+        </div>
+        <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow">
+          <i class="fa-solid fa-user-plus mr-1.5"></i> Register Account (Requires Super Admin Approval)
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= 3. PENDING APPROVAL VIEW ================= -->
+  <div id="pendingApprovalView" class="hidden flex-1 flex items-center justify-center p-4">
+    <div class="max-w-md w-full bg-white rounded-2xl shadow-lg p-6 text-center space-y-3 border">
+      <div class="w-14 h-14 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto text-2xl">
+        <i class="fa-solid fa-user-clock"></i>
+      </div>
+      <h2 class="text-base font-bold">Account Pending Approval</h2>
+      <p class="text-xs text-slate-600">
+        Your registration for <strong>TPCODL Kendrapara Division</strong> has been recorded. Only members approved by the Single Super Admin can access live PTW records.
+      </p>
+      <button onclick="handleLogout()" class="px-4 py-2 bg-slate-800 text-white rounded-lg text-xs font-bold">Sign Out</button>
+    </div>
+  </div>
+
+  <!-- ================= 4. MAIN APPLICATION VIEW ================= -->
+  <div id="mainAppView" class="hidden flex-1 flex flex-col max-w-7xl w-full mx-auto px-2 sm:px-4 py-3 space-y-4">
+
+    <!-- Top Navigation Bar -->
+    <div class="bg-white rounded-xl shadow-sm border p-2 flex flex-wrap items-center justify-between gap-2">
+      <div class="flex flex-wrap items-center gap-1 text-xs font-bold">
+        <button onclick="switchMainTab('dashboard')" id="nav_dashboard" class="nav-btn px-3 py-2 rounded-lg bg-blue-900 text-white">
+          <i class="fa-solid fa-chart-pie mr-1"></i> Live Dashboard
+        </button>
+        <button onclick="switchMainTab('ptwList')" id="nav_ptwList" class="nav-btn px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100">
+          <i class="fa-solid fa-bolt mr-1"></i> PTW Monitor
+        </button>
+        <button onclick="switchMainTab('recovery')" id="nav_recovery" class="nav-btn px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100">
+          <i class="fa-solid fa-rotate-left mr-1"></i> PTW Recovery
+        </button>
+        <button onclick="switchMainTab('reports')" id="nav_reports" class="nav-btn px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100">
+          <i class="fa-solid fa-file-excel mr-1"></i> Reports & Analytics
+        </button>
+        <button onclick="switchMainTab('safety')" id="nav_safety" class="nav-btn px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100">
+          <i class="fa-solid fa-helmet-safety mr-1"></i> Safety & Near-Miss
+        </button>
+        <button onclick="switchMainTab('profile')" id="nav_profile" class="nav-btn px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100">
+          <i class="fa-solid fa-id-badge mr-1"></i> Profile
+        </button>
+        <button onclick="switchMainTab('admin')" id="nav_admin" class="hidden nav-btn px-3 py-2 rounded-lg text-purple-800 bg-purple-50 hover:bg-purple-100">
+          <i class="fa-solid fa-user-shield mr-1"></i> Super Admin Panel
+        </button>
+      </div>
+
+      <button id="btnIssueNewPtw" onclick="openIssuePtwModal()" class="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs shadow-md flex items-center">
+        <i class="fa-solid fa-plus-circle mr-1.5"></i> ISSUE NEW PTW
+      </button>
+    </div>
+
+    <!-- ================= TAB A: LIVE DASHBOARD ================= -->
+    <section id="sec_dashboard" class="space-y-4">
+      <div class="bg-white p-3 rounded-xl shadow-sm border flex flex-wrap items-center justify-between gap-2 text-xs">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="font-bold text-slate-600"><i class="fa-solid fa-filter mr-1"></i> Filter:</span>
+          <select id="dashPeriodFilter" onchange="renderDashboard()" class="border rounded-lg px-2.5 py-1.5">
+            <option value="all">All Time</option>
+            <option value="today">Today</option>
+            <option value="yesterday">Yesterday</option>
+            <option value="7days">Last 7 Days</option>
+            <option value="month">Current Month</option>
+            <option value="year">Current Year</option>
+          </select>
+          <select id="dashSubdivFilter" onchange="onDashSubdivChange()" class="border rounded-lg px-2.5 py-1.5">
+            <option value="all">All Subdivisions (4)</option>
+          </select>
+          <select id="dashSectionFilter" onchange="renderDashboard()" class="border rounded-lg px-2.5 py-1.5">
+            <option value="all">All Sections (18)</option>
+          </select>
+        </div>
+        <div class="text-[11px] text-slate-500 font-medium">
+          Division-Wide Live Visibility for all Approved Members
+        </div>
+      </div>
+
+      <!-- Primary KPI Cards -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div class="bg-white p-3.5 rounded-xl shadow-sm border-l-4 border-blue-700">
+          <div class="text-[11px] text-slate-500 font-bold uppercase">Total Issued</div>
+          <div id="kpiTotal" class="text-2xl font-extrabold text-blue-900 mt-1">0</div>
+        </div>
+        <div class="bg-white p-3.5 rounded-xl shadow-sm border-l-4 border-red-600">
+          <div class="text-[11px] text-red-600 font-bold uppercase flex items-center">
+            <span class="w-2 h-2 rounded-full bg-red-600 pulse-dot mr-1.5"></span> Active PTWs
+          </div>
+          <div id="kpiActive" class="text-2xl font-extrabold text-red-600 mt-1">0</div>
+        </div>
+        <div class="bg-white p-3.5 rounded-xl shadow-sm border-l-4 border-emerald-600">
+          <div class="text-[11px] text-emerald-700 font-bold uppercase">Closed (Line Clear)</div>
+          <div id="kpiClosed" class="text-2xl font-extrabold text-emerald-700 mt-1">0</div>
+        </div>
+        <div class="bg-white p-3.5 rounded-xl shadow-sm border-l-4 border-indigo-600">
+          <div class="text-[11px] text-indigo-700 font-bold uppercase">Recovered PTWs</div>
+          <div id="kpiRecovered" class="text-2xl font-extrabold text-indigo-700 mt-1">0</div>
+        </div>
+        <div class="bg-white p-3.5 rounded-xl shadow-sm border-l-4 border-amber-500">
+          <div class="text-[11px] text-amber-700 font-bold uppercase">Pending Recovery</div>
+          <div id="kpiPendingRec" class="text-2xl font-extrabold text-amber-600 mt-1">0</div>
+        </div>
+        <div class="bg-white p-3.5 rounded-xl shadow-sm border-l-4 border-rose-700">
+          <div class="text-[11px] text-rose-700 font-bold uppercase">Overdue PTWs</div>
+          <div id="kpiOverdue" class="text-2xl font-extrabold text-rose-700 mt-1">0</div>
+        </div>
+      </div>
+
+      <!-- Secondary Counters -->
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 text-xs">
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-2.5 flex justify-between items-center">
+          <span class="font-semibold text-blue-900">Today's PTWs</span>
+          <span id="kpiTodayCount" class="font-extrabold text-base text-blue-900">0</span>
+        </div>
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-2.5 flex justify-between items-center">
+          <span class="font-semibold text-blue-900">This Month</span>
+          <span id="kpiMonthCount" class="font-extrabold text-base text-blue-900">0</span>
+        </div>
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-2.5 flex justify-between items-center">
+          <span class="font-semibold text-blue-900">This Year</span>
+          <span id="kpiYearCount" class="font-extrabold text-base text-blue-900">0</span>
+        
