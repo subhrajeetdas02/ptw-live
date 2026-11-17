@@ -5,341 +5,779 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>TPCODL KENDRAPARA – LT LINE PTW MANAGEMENT SYSTEM</title>
   <meta name="theme-color" content="#1e3a8a" />
-  
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  <!-- SheetJS (Excel .xlsx Export) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <!-- jsPDF & AutoTable (PDF .pdf Export) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-  <!-- QRCode.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
+  <!-- Firebase v9 Compat SDK (100% Mobile-Safe, Zero Module Freeze) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <style>
     body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
     .pulse-dot { animation: pulse 1.5s infinite; }
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.35); opacity: 0.55; }
-    }
-    @media print {
-      header, .no-print { display: none !important; }
-    }
+    @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.35); opacity: 0.55; } }
+    @media print { header, .no-print { display: none !important; } }
   </style>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
 
-  <!-- ================= TOP HEADER ================= -->
+  <!-- TOP HEADER -->
   <header class="bg-blue-900 text-white shadow-lg sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-3 py-2.5 flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-full bg-yellow-400 text-blue-950 flex items-center justify-center font-extrabold text-lg shadow">
+      <div class="flex items-center space-x-2.5">
+        <div class="w-9 h-9 rounded-full bg-yellow-400 text-blue-950 flex items-center justify-center font-extrabold shadow">
           <i class="fa-solid fa-bolt"></i>
         </div>
         <div>
-          <h1 class="font-bold text-sm md:text-lg leading-tight tracking-wide">TPCODL KENDRAPARA</h1>
-          <p class="text-[11px] text-yellow-300 font-medium">Digital PTW | Live Monitoring | Safety First</p>
+          <h1 class="font-bold text-sm md:text-lg leading-tight">TPCODL KENDRAPARA (KED-1)</h1>
+          <p class="text-[10px] text-yellow-300 font-medium">LT Line Digital PTW | Live Monitoring | Safety First</p>
         </div>
       </div>
-
-      <div id="headerUserControls" class="hidden flex items-center space-x-2 md:space-x-3">
-        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot mr-1.5"></span> LIVE
+      <div id="headerUserControls" class="hidden flex items-center space-x-2">
+        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-dot mr-1"></span> LIVE
         </span>
         <button onclick="openNotificationsModal()" class="relative p-2 rounded-lg bg-blue-800 hover:bg-blue-700">
-          <i class="fa-solid fa-bell text-sm"></i>
-          <span id="notifCountBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 rounded-full">0</span>
+          <i class="fa-solid fa-bell text-xs"></i>
+          <span id="notifCountBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold px-1.5 rounded-full">0</span>
         </button>
-        <div class="hidden md:block text-right text-xs">
+        <div class="hidden sm:block text-right text-xs">
           <div id="currentUserName" class="font-bold">User</div>
-          <div id="currentUserRole" class="text-blue-200 text-[10px] uppercase">Role</div>
+          <div id="currentUserRole" class="text-blue-200 text-[9px] uppercase">Role</div>
         </div>
-        <button onclick="handleLogout()" title="Logout" class="p-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-semibold">
+        <button onclick="handleLogout()" title="Logout" class="p-2 rounded-lg bg-red-600 text-white text-xs font-bold">
           <i class="fa-solid fa-power-off"></i>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- ================= EMERGENCY BROADCAST BANNER ================= -->
-  <div id="emergencyBanner" class="hidden bg-red-600 text-white px-4 py-2 text-center text-xs md:text-sm font-bold flex items-center justify-center space-x-2 shadow-md">
-    <i class="fa-solid fa-triangle-exclamation animate-bounce"></i>
-    <span id="emergencyBannerText">EMERGENCY SAFETY ALERT</span>
+  <!-- EMERGENCY BANNER -->
+  <div id="emergencyBanner" class="hidden bg-red-600 text-white px-4 py-2 text-center text-xs font-bold shadow-md">
+    <i class="fa-solid fa-triangle-exclamation mr-1"></i> <span id="emergencyBannerText">EMERGENCY ALERT</span>
   </div>
 
-  <!-- ================= LOADING VIEW ================= -->
-  <div id="loadingView" class="flex-1 flex flex-col items-center justify-center p-6">
-    <div class="w-12 h-12 border-4 border-blue-900 border-t-transparent rounded-full animate-spin mb-4"></div>
-    <p class="text-sm font-semibold text-slate-600">Connecting to TPCODL Kendrapara Cloud Database...</p>
-  </div>
+  <!-- DIAGNOSTIC ALERT BAR -->
+  <div id="diagAlertBar" class="hidden bg-amber-100 border-b border-amber-300 text-amber-950 px-4 py-2 text-xs font-semibold text-center"></div>
 
-  <!-- ================= 1. INITIAL SUPER ADMIN BOOTSTRAP SCREEN ================= -->
-  <div id="bootstrapView" class="hidden flex-1 flex items-center justify-center p-4">
-    <div class="max-w-lg w-full bg-white rounded-2xl shadow-xl border border-slate-200 p-6">
-      <div class="flex items-center space-x-3 mb-4 text-blue-900">
-        <i class="fa-solid fa-shield-halved text-3xl"></i>
-        <div>
-          <h2 class="text-lg font-extrabold">Initial Super Admin Setup</h2>
-          <p class="text-xs text-slate-500">First-Time System Bootstrap (Strictly 1 Account Only)</p>
+  <!-- 1. INITIAL SUPER ADMIN SETUP (OPENS INSTANTLY) -->
+  <div id="bootstrapView" class="flex-1 flex items-center justify-center p-3">
+    <div class="max-w-lg w-full bg-white rounded-2xl shadow-xl border p-5">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center space-x-2 text-blue-900">
+          <i class="fa-solid fa-shield-halved text-2xl"></i>
+          <div>
+            <h2 class="text-base font-extrabold">Initial Super Admin Setup</h2>
+            <p class="text-[11px] text-slate-500">Single Super Admin Bootstrap (TPCODL Kendrapara)</p>
+          </div>
         </div>
+        <button onclick="showView('authView')" class="text-[11px] text-blue-700 font-bold underline">Already Setup? Login</button>
       </div>
 
-      <div class="bg-amber-50 border-l-4 border-amber-500 p-3 rounded text-xs text-amber-900 mb-4">
-        <strong>CRITICAL SECURITY NOTICE:</strong> Below is your App-Generated Super Password. It will be shown <strong>ONLY ONCE</strong>. Copy it and download the recovery file before creating the Single Super Admin account.
+      <div class="bg-amber-50 border-l-4 border-amber-500 p-2.5 rounded text-[11px] text-amber-900 mb-3">
+        <strong>CRITICAL:</strong> Copy your App-Generated Super Password and download the recovery file before creating your account.
       </div>
 
-      <div class="bg-slate-900 text-yellow-400 font-mono text-center text-base md:text-lg font-bold py-3 px-4 rounded-xl mb-3 tracking-wider select-all" id="generatedSuperPassDisplay">
+      <div id="generatedSuperPassDisplay" class="bg-slate-900 text-yellow-400 font-mono text-center text-sm md:text-base font-bold py-2.5 px-3 rounded-xl mb-2.5 select-all">
         GENERATING...
       </div>
 
-      <div class="grid grid-cols-2 gap-2 mb-4">
-        <button type="button" onclick="copySuperPasswordBootstrap()" class="py-2 px-3 bg-blue-100 hover:bg-blue-200 text-blue-900 font-bold rounded-lg text-xs flex items-center justify-center">
-          <i class="fa-regular fa-copy mr-1.5"></i> Copy Super Password
-        </button>
-        <button type="button" onclick="downloadRecoveryKeyBootstrap()" class="py-2 px-3 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-bold rounded-lg text-xs flex items-center justify-center">
-          <i class="fa-solid fa-download mr-1.5"></i> Download .TXT Key
-        </button>
+      <div class="grid grid-cols-2 gap-2 mb-3 text-xs">
+        <button type="button" onclick="copySuperPasswordBootstrap()" class="py-2 bg-blue-100 text-blue-900 font-bold rounded-lg"><i class="fa-regular fa-copy mr-1"></i> Copy Password</button>
+        <button type="button" onclick="downloadRecoveryKeyBootstrap()" class="py-2 bg-emerald-100 text-emerald-900 font-bold rounded-lg"><i class="fa-solid fa-download mr-1"></i> Download .TXT</button>
       </div>
 
-      <form onsubmit="handleBootstrapSubmit(event)" class="space-y-3 text-xs">
-        <div>
-          <label class="font-bold block mb-1">Super Admin Full Name *</label>
-          <input type="text" id="saName" required placeholder="e.g., Subhrajeet Das" class="w-full border rounded-lg px-3 py-2" />
+      <form onsubmit="handleBootstrapSubmit(event)" class="space-y-2.5 text-xs">
+        <input type="text" id="saName" required placeholder="Super Admin Full Name (e.g. Subhrajeet Das) *" class="w-full border rounded-lg px-3 py-2" />
+        <div class="grid grid-cols-2 gap-2">
+          <input type="tel" id="saMobile" required pattern="[0-9]{10}" maxlength="10" placeholder="10-Digit Mobile *" class="w-full border rounded-lg px-3 py-2" />
+          <input type="text" id="saEmpId" placeholder="Emp ID (Optional)" class="w-full border rounded-lg px-3 py-2" />
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div>
-            <label class="font-bold block mb-1">10-Digit Mobile Number *</label>
-            <input type="tel" id="saMobile" required pattern="[0-9]{10}" maxlength="10" placeholder="10-digit mobile" class="w-full border rounded-lg px-3 py-2" />
-          </div>
-          <div>
-            <label class="font-bold block mb-1">Employee ID (Optional)</label>
-            <input type="text" id="saEmpId" placeholder="Optional" class="w-full border rounded-lg px-3 py-2" />
-          </div>
-        </div>
-        <div>
-          <label class="font-bold block mb-1">Designation *</label>
-          <input type="text" id="saDesignation" required placeholder="e.g., Safety Officer / Division Admin" class="w-full border rounded-lg px-3 py-2" />
-        </div>
-        <div>
-          <label class="font-bold block mb-1">Account Login Password (min 6 chars) *</label>
-          <input type="password" id="saLoginPassword" required minlength="6" placeholder="Enter login password" class="w-full border rounded-lg px-3 py-2" />
-        </div>
-
-        <div class="space-y-1.5 pt-2 border-t">
-          <label class="flex items-center space-x-2 cursor-pointer">
-            <input type="checkbox" id="chkCopiedSuper" required class="rounded text-blue-900" />
-            <span>I have copied the App-Generated Super Password safely.</span>
-          </label>
-          <label class="flex items-center space-x-2 cursor-pointer">
-            <input type="checkbox" id="chkDownloadedSuper" required class="rounded text-blue-900" />
-            <span>I have downloaded the Recovery Key (.txt) file.</span>
-          </label>
-        </div>
-
-        <button type="submit" class="w-full py-2.5 bg-blue-900 hover:bg-blue-800 text-white font-bold rounded-xl shadow mt-2">
-          Initialize System & Create Single Super Admin
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <!-- ================= 2. LOGIN & REGISTRATION VIEW ================= -->
-  <div id="authView" class="hidden flex-1 flex items-center justify-center p-4">
-    <div class="max-w-md w-full bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
-      <div class="flex border-b">
-        <button id="tabLoginBtn" onclick="switchAuthTab('login')" class="flex-1 py-3 font-bold text-xs uppercase border-b-2 border-blue-900 text-blue-900 bg-blue-50/50">
-          Member Login
-        </button>
-        <button id="tabSignupBtn" onclick="switchAuthTab('signup')" class="flex-1 py-3 font-bold text-xs uppercase text-slate-500 hover:text-slate-800">
-          Create Account
-        </button>
-      </div>
-
-      <!-- Login Form -->
-      <form id="loginForm" onsubmit="handleLogin(event)" class="p-6 space-y-4 text-xs">
-        <div>
-          <label class="font-bold block mb-1">Registered 10-Digit Mobile Number *</label>
-          <input type="tel" id="loginMobile" required pattern="[0-9]{10}" maxlength="10" placeholder="Enter 10-digit mobile number" class="w-full border rounded-lg px-3 py-2.5" />
-        </div>
-        <div>
-          <label class="font-bold block mb-1">Password *</label>
-          <input type="password" id="loginPassword" required placeholder="Enter password" class="w-full border rounded-lg px-3 py-2.5" />
+        <input type="text" id="saDesignation" required placeholder="Designation (e.g. Safety Officer) *" class="w-full border rounded-lg px-3 py-2" />
+        <input type="password" id="saLoginPassword" required minlength="6" placeholder="Create Login Password (min 6 chars) *" class="w-full border rounded-lg px-3 py-2" />
+        <div class="space-y-1 pt-1 border-t text-[11px]">
+          <label class="flex items-center space-x-2"><input type="checkbox" id="chkCopiedSuper" required /> <span>I have copied the Super Password</span></label>
+          <label class="flex items-center space-x-2"><input type="checkbox" id="chkDownloadedSuper" required /> <span>I have downloaded the Recovery Key (.txt)</span></label>
         </div>
         <button type="submit" class="w-full py-2.5 bg-blue-900 hover:bg-blue-800 text-white font-bold rounded-xl shadow">
-          <i class="fa-solid fa-right-to-bracket mr-1.5"></i> Sign In
-        </button>
-      </form>
-
-      <!-- Signup Form (Employee ID Optional) -->
-      <form id="signupForm" onsubmit="handleSignup(event)" class="hidden p-6 space-y-3 text-xs">
-        <div>
-          <label class="font-bold block mb-1">Full Name *</label>
-          <input type="text" id="regName" required placeholder="Enter full name" class="w-full border rounded-lg px-3 py-2" />
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="font-bold block mb-1">Employee ID <span class="text-slate-400 font-normal">(Optional)</span></label>
-            <input type="text" id="regEmpId" placeholder="Leave blank if none" class="w-full border rounded-lg px-3 py-2" />
-          </div>
-          <div>
-            <label class="font-bold block mb-1">Mobile Number *</label>
-            <input type="tel" id="regMobile" required pattern="[0-9]{10}" maxlength="10" placeholder="10-digit mobile" class="w-full border rounded-lg px-3 py-2" />
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="font-bold block mb-1">Designation *</label>
-            <input type="text" id="regDesignation" required placeholder="e.g. Lineman / JE" class="w-full border rounded-lg px-3 py-2" />
-          </div>
-          <div>
-            <label class="font-bold block mb-1">Division *</label>
-            <select id="regDivision" required class="w-full border rounded-lg px-3 py-2 bg-slate-50">
-              <option value="Kendrapara">Kendrapara</option>
-            </select>
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="font-bold block mb-1">Subdivision *</label>
-            <select id="regSubdivision" required onchange="populateSectionDropdown('regSubdivision','regSection')" class="w-full border rounded-lg px-3 py-2">
-              <option value="">Select Subdivision</option>
-            </select>
-          </div>
-          <div>
-            <label class="font-bold block mb-1">Section *</label>
-            <select id="regSection" required class="w-full border rounded-lg px-3 py-2">
-              <option value="">Select Section</option>
-            </select>
-          </div>
-        </div>
-        <div>
-          <label class="font-bold block mb-1">Create Password (min 6 chars) *</label>
-          <input type="password" id="regPassword" required minlength="6" placeholder="Minimum 6 characters" class="w-full border rounded-lg px-3 py-2" />
-        </div>
-        <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow">
-          <i class="fa-solid fa-user-plus mr-1.5"></i> Register Account (Requires Super Admin Approval)
+          Initialize & Create Single Super Admin
         </button>
       </form>
     </div>
   </div>
 
-  <!-- ================= 3. PENDING APPROVAL VIEW ================= -->
-  <div id="pendingApprovalView" class="hidden flex-1 flex items-center justify-center p-4">
-    <div class="max-w-md w-full bg-white rounded-2xl shadow-lg p-6 text-center space-y-3 border">
-      <div class="w-14 h-14 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto text-2xl">
-        <i class="fa-solid fa-user-clock"></i>
+  <!-- 2. LOGIN & REGISTRATION VIEW -->
+  <div id="authView" class="hidden flex-1 flex items-center justify-center p-3">
+    <div class="max-w-md w-full bg-white rounded-2xl shadow-xl border overflow-hidden">
+      <div class="flex border-b text-xs font-bold">
+        <button id="tabLoginBtn" onclick="switchAuthTab('login')" class="flex-1 py-3 border-b-2 border-blue-900 text-blue-900 bg-blue-50">MEMBER LOGIN</button>
+        <button id="tabSignupBtn" onclick="switchAuthTab('signup')" class="flex-1 py-3 text-slate-500">CREATE ACCOUNT</button>
       </div>
-      <h2 class="text-base font-bold">Account Pending Approval</h2>
-      <p class="text-xs text-slate-600">
-        Your registration for <strong>TPCODL Kendrapara Division</strong> has been recorded. Only members approved by the Single Super Admin can access live PTW records.
-      </p>
+      <form id="loginForm" onsubmit="handleLogin(event)" class="p-5 space-y-3 text-xs">
+        <input type="tel" id="loginMobile" required pattern="[0-9]{10}" maxlength="10" placeholder="Registered 10-Digit Mobile *" class="w-full border rounded-lg px-3 py-2.5" />
+        <input type="password" id="loginPassword" required placeholder="Password *" class="w-full border rounded-lg px-3 py-2.5" />
+        <button type="submit" class="w-full py-2.5 bg-blue-900 text-white font-bold rounded-xl shadow">Sign In</button>
+        <div class="text-center pt-2">
+          <button type="button" onclick="showView('bootstrapView')" class="text-[11px] text-slate-500 underline">First time setup? Go to Super Admin Setup</button>
+        </div>
+      </form>
+      <form id="signupForm" onsubmit="handleSignup(event)" class="hidden p-5 space-y-2.5 text-xs">
+        <input type="text" id="regName" required placeholder="Full Name *" class="w-full border rounded-lg px-3 py-2" />
+        <div class="grid grid-cols-2 gap-2">
+          <input type="text" id="regEmpId" placeholder="Emp ID (Optional)" class="w-full border rounded-lg px-3 py-2" />
+          <input type="tel" id="regMobile" required pattern="[0-9]{10}" maxlength="10" placeholder="10-Digit Mobile *" class="w-full border rounded-lg px-3 py-2" />
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <input type="text" id="regDesignation" required placeholder="Designation *" class="w-full border rounded-lg px-3 py-2" />
+          <input type="text" value="Kendrapara" readonly class="w-full border rounded-lg px-3 py-2 bg-slate-100 font-bold" />
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <select id="regSubdivision" required onchange="populateSectionDropdown('regSubdivision','regSection')" class="w-full border rounded-lg px-3 py-2"><option value="">Subdivision *</option></select>
+          <select id="regSection" required class="w-full border rounded-lg px-3 py-2"><option value="">Section *</option></select>
+        </div>
+        <input type="password" id="regPassword" required minlength="6" placeholder="Create Password (min 6 chars) *" class="w-full border rounded-lg px-3 py-2" />
+        <button type="submit" class="w-full py-2.5 bg-emerald-600 text-white font-bold rounded-xl shadow">Register Account</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. PENDING APPROVAL -->
+  <div id="pendingApprovalView" class="hidden flex-1 flex items-center justify-center p-4">
+    <div class="max-w-md w-full bg-white rounded-2xl shadow p-6 text-center space-y-3 border">
+      <i class="fa-solid fa-user-clock text-3xl text-amber-500"></i>
+      <h2 class="text-base font-bold">Account Pending Super Admin Approval</h2>
+      <p class="text-xs text-slate-600">Your registration is recorded. Once the Single Super Admin approves your account, you will get full live access.</p>
       <button onclick="handleLogout()" class="px-4 py-2 bg-slate-800 text-white rounded-lg text-xs font-bold">Sign Out</button>
     </div>
   </div>
 
-  <!-- ================= 4. MAIN APPLICATION VIEW ================= -->
-  <div id="mainAppView" class="hidden flex-1 flex flex-col max-w-7xl w-full mx-auto px-2 sm:px-4 py-3 space-y-4">
-
-    <!-- Top Navigation Bar -->
+  <!-- 4. MAIN APPLICATION VIEW -->
+  <div id="mainAppView" class="hidden flex-1 flex flex-col max-w-7xl w-full mx-auto px-2 sm:px-4 py-3 space-y-3">
     <div class="bg-white rounded-xl shadow-sm border p-2 flex flex-wrap items-center justify-between gap-2">
-      <div class="flex flex-wrap items-center gap-1 text-xs font-bold">
-        <button onclick="switchMainTab('dashboard')" id="nav_dashboard" class="nav-btn px-3 py-2 rounded-lg bg-blue-900 text-white">
-          <i class="fa-solid fa-chart-pie mr-1"></i> Live Dashboard
-        </button>
-        <button onclick="switchMainTab('ptwList')" id="nav_ptwList" class="nav-btn px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100">
-          <i class="fa-solid fa-bolt mr-1"></i> PTW Monitor
-        </button>
-        <button onclick="switchMainTab('recovery')" id="nav_recovery" class="nav-btn px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100">
-          <i class="fa-solid fa-rotate-left mr-1"></i> PTW Recovery
-        </button>
-        <button onclick="switchMainTab('reports')" id="nav_reports" class="nav-btn px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100">
-          <i class="fa-solid fa-file-excel mr-1"></i> Reports & Analytics
-        </button>
-        <button onclick="switchMainTab('safety')" id="nav_safety" class="nav-btn px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100">
-          <i class="fa-solid fa-helmet-safety mr-1"></i> Safety & Near-Miss
-        </button>
-        <button onclick="switchMainTab('profile')" id="nav_profile" class="nav-btn px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100">
-          <i class="fa-solid fa-id-badge mr-1"></i> Profile
-        </button>
-        <button onclick="switchMainTab('admin')" id="nav_admin" class="hidden nav-btn px-3 py-2 rounded-lg text-purple-800 bg-purple-50 hover:bg-purple-100">
-          <i class="fa-solid fa-user-shield mr-1"></i> Super Admin Panel
-        </button>
+      <div class="flex flex-wrap gap-1 text-xs font-bold">
+        <button onclick="switchMainTab('dashboard')" id="nav_dashboard" class="px-3 py-1.5 rounded-lg bg-blue-900 text-white">Dashboard</button>
+        <button onclick="switchMainTab('ptwList')" id="nav_ptwList" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700">PTW Monitor</button>
+        <button onclick="switchMainTab('recovery')" id="nav_recovery" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700">Recovery</button>
+        <button onclick="switchMainTab('reports')" id="nav_reports" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700">Reports</button>
+        <button onclick="switchMainTab('safety')" id="nav_safety" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700">Safety</button>
+        <button onclick="switchMainTab('profile')" id="nav_profile" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700">Profile</button>
+        <button onclick="switchMainTab('admin')" id="nav_admin" class="hidden px-3 py-1.5 rounded-lg bg-purple-100 text-purple-900">Super Admin</button>
       </div>
-
-      <button id="btnIssueNewPtw" onclick="openIssuePtwModal()" class="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs shadow-md flex items-center">
-        <i class="fa-solid fa-plus-circle mr-1.5"></i> ISSUE NEW PTW
-      </button>
+      <button onclick="document.getElementById('issuePtwModal').classList.remove('hidden')" class="px-3.5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs shadow">+ ISSUE NEW PTW</button>
     </div>
 
-    <!-- ================= TAB A: LIVE DASHBOARD ================= -->
-    <section id="sec_dashboard" class="space-y-4">
-      <div class="bg-white p-3 rounded-xl shadow-sm border flex flex-wrap items-center justify-between gap-2 text-xs">
-        <div class="flex flex-wrap items-center gap-2">
-          <span class="font-bold text-slate-600"><i class="fa-solid fa-filter mr-1"></i> Filter:</span>
-          <select id="dashPeriodFilter" onchange="renderDashboard()" class="border rounded-lg px-2.5 py-1.5">
-            <option value="all">All Time</option>
-            <option value="today">Today</option>
-            <option value="yesterday">Yesterday</option>
-            <option value="7days">Last 7 Days</option>
-            <option value="month">Current Month</option>
-            <option value="year">Current Year</option>
-          </select>
-          <select id="dashSubdivFilter" onchange="onDashSubdivChange()" class="border rounded-lg px-2.5 py-1.5">
-            <option value="all">All Subdivisions (4)</option>
-          </select>
-          <select id="dashSectionFilter" onchange="renderDashboard()" class="border rounded-lg px-2.5 py-1.5">
-            <option value="all">All Sections (18)</option>
-          </select>
+    <!-- DASHBOARD -->
+    <section id="sec_dashboard" class="space-y-3">
+      <div class="grid grid-cols-2 sm:grid-cols-6 gap-2.5">
+        <div class="bg-white p-3 rounded-xl border-l-4 border-blue-700"><div class="text-[10px] text-slate-500 font-bold">TOTAL PTW</div><div id="kpiTotal" class="text-xl font-extrabold text-blue-900">0</div></div>
+        <div class="bg-white p-3 rounded-xl border-l-4 border-red-600"><div class="text-[10px] text-red-600 font-bold">ACTIVE PTW</div><div id="kpiActive" class="text-xl font-extrabold text-red-600">0</div></div>
+        <div class="bg-white p-3 rounded-xl border-l-4 border-emerald-600"><div class="text-[10px] text-emerald-700 font-bold">CLOSED</div><div id="kpiClosed" class="text-xl font-extrabold text-emerald-700">0</div></div>
+        <div class="bg-white p-3 rounded-xl border-l-4 border-indigo-600"><div class="text-[10px] text-indigo-700 font-bold">RECOVERED</div><div id="kpiRecovered" class="text-xl font-extrabold text-indigo-700">0</div></div>
+        <div class="bg-white p-3 rounded-xl border-l-4 border-amber-500"><div class="text-[10px] text-amber-700 font-bold">PENDING REC</div><div id="kpiPendingRec" class="text-xl font-extrabold text-amber-600">0</div></div>
+        <div class="bg-white p-3 rounded-xl border-l-4 border-purple-700"><div class="text-[10px] text-purple-700 font-bold">MEMBERS</div><div id="kpiTotalMembers" class="text-xl font-extrabold text-purple-700">0</div></div>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 text-xs">
+        <div class="bg-white rounded-xl border p-3"><h3 class="font-bold uppercase mb-2 text-blue-900">4 Subdivisions Live Status</h3><div id="subdivBreakdownContainer" class="space-y-1.5"></div></div>
+        <div class="bg-white rounded-xl border p-3"><h3 class="font-bold uppercase mb-2 text-blue-900">18 Sections Live Breakdown</h3><div id="sectionBreakdownContainer" class="max-h-60 overflow-y-auto space-y-1.5"></div></div>
+      </div>
+    </section>
+
+    <!-- PTW MONITOR -->
+    <section id="sec_ptwList" class="hidden space-y-2.5">
+      <div class="bg-white p-2.5 rounded-xl border flex flex-wrap justify-between gap-2 text-xs">
+        <div class="flex gap-1 font-bold">
+          <button onclick="setPtwTab('ACTIVE')" id="tabBtn_ACTIVE" class="px-3 py-1 rounded bg-red-600 text-white">ACTIVE</button>
+          <button onclick="setPtwTab('CLOSED')" id="tabBtn_CLOSED" class="px-3 py-1 rounded bg-slate-200 text-slate-700">CLOSED</button>
+          <button onclick="setPtwTab('RECOVERED')" id="tabBtn_RECOVERED" class="px-3 py-1 rounded bg-slate-200 text-slate-700">RECOVERED</button>
         </div>
-        <div class="text-[11px] text-slate-500 font-medium">
-          Division-Wide Live Visibility for all Approved Members
+        <input type="text" id="globalPtwSearch" oninput="renderPtwTable()" placeholder="Search 6-digit code, feeder, lineman..." class="border rounded px-2.5 py-1" />
+      </div>
+      <div class="bg-white rounded-xl border overflow-x-auto">
+        <table class="w-full text-left text-xs"><thead class="bg-slate-800 text-white"><tr><th class="p-2.5">6-Digit Code</th><th class="p-2.5">Section & Feeder</th><th class="p-2.5">Issuer & Lineman</th><th class="p-2.5">Issued Time</th><th class="p-2.5">Status</th><th class="p-2.5 text-right">Actions</th></tr></thead><tbody id="ptwTableBody" class="divide-y"></tbody></table>
+      </div>
+    </section>
+
+    <!-- RECOVERY -->
+    <section id="sec_recovery" class="hidden bg-white rounded-xl border p-4 text-xs">
+      <h3 class="font-bold text-sm text-blue-900 mb-2">Formal PTW Recovery (Closed PTWs)</h3>
+      <div id="pendingRecoveryListContainer" class="space-y-2"></div>
+    </section>
+
+    <!-- REPORTS -->
+    <section id="sec_reports" class="hidden bg-white rounded-xl border p-4 space-y-3 text-xs">
+      <h3 class="font-bold text-sm text-blue-900">Download Official Kendrapara Reports (365-Day Audit Records)</h3>
+      <div class="flex flex-wrap gap-2">
+        <button onclick="exportReportExcel()" class="px-4 py-2 bg-emerald-700 text-white font-bold rounded-lg"><i class="fa-solid fa-file-excel mr-1"></i> Export Excel (.xlsx)</button>
+        <button onclick="exportReportPdf()" class="px-4 py-2 bg-red-700 text-white font-bold rounded-lg"><i class="fa-solid fa-file-pdf mr-1"></i> Export PDF (.pdf)</button>
+      </div>
+    </section>
+
+    <!-- SAFETY -->
+    <section id="sec_safety" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-3 text-xs">
+      <form onsubmit="handleSafetySubmit(event)" class="bg-white rounded-xl border p-3 space-y-2">
+        <h3 class="font-bold text-blue-900">Report Near-Miss / Suraksha Viram</h3>
+        <select id="safCategory" class="w-full border rounded px-2.5 py-1.5"><option>Near-Miss</option><option>Suraksha Viram</option><option>Hazard Observation</option></select>
+        <input type="text" id="safLocation" required placeholder="Section & Location *" class="w-full border rounded px-2.5 py-1.5" />
+        <textarea id="safDesc" required rows="3" placeholder="Details *" class="w-full border rounded px-2.5 py-1.5"></textarea>
+        <button type="submit" class="w-full py-2 bg-blue-900 text-white font-bold rounded">Submit</button>
+      </form>
+      <div class="lg:col-span-2 bg-white rounded-xl border p-3"><h3 class="font-bold mb-2 text-blue-900">Live Safety Feed</h3><div id="safetyFeedList" class="space-y-1.5"></div></div>
+    </section>
+
+    <!-- PROFILE -->
+    <section id="sec_profile" class="hidden max-w-md mx-auto bg-white rounded-xl border p-4 space-y-3 text-xs">
+      <h3 class="font-bold text-sm text-blue-900 border-b pb-2">Member Profile</h3>
+      <div id="profileInfoBox" class="space-y-1.5"></div>
+      <div class="pt-2 border-t flex gap-2">
+        <input type="text" id="profEmpIdInput" placeholder="Optional Employee ID" class="flex-1 border rounded-lg px-3 py-2" />
+        <button onclick="updateProfileEmpId()" class="px-4 py-2 bg-blue-900 text-white font-bold rounded-lg">Save</button>
+      </div>
+    </section>
+
+    <!-- SUPER ADMIN PANEL -->
+    <section id="sec_admin" class="hidden space-y-3 text-xs">
+      <div class="bg-purple-900 text-white p-3 rounded-xl flex flex-wrap justify-between items-center gap-2">
+        <div><h2 class="font-extrabold">SINGLE SUPER ADMIN PANEL</h2><p class="text-[10px] text-purple-200">Configure Subdivisions, Sections, Broadcasts & Approve Members</p></div>
+        <button onclick="exportFullJsonBackup()" class="px-3 py-1.5 bg-yellow-400 text-slate-900 font-bold rounded-lg">Full JSON Backup</button>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        <div class="bg-white rounded-xl border p-3 space-y-2">
+          <h3 class="font-bold text-blue-900">1. Manage Subdivisions (4 Official Subdivisions)</h3>
+          <form onsubmit="handleAddSubdiv(event)" class="flex gap-2">
+            <input type="text" id="newSubdivName" required placeholder="Subdivision Name" class="flex-1 border rounded px-2.5 py-1.5" />
+            <button type="submit" class="px-3 py-1.5 bg-blue-900 text-white font-bold rounded">Add</button>
+          </form>
+          <div id="adminSubdivList" class="divide-y max-h-40 overflow-y-auto"></div>
+        </div>
+        <div class="bg-white rounded-xl border p-3 space-y-2">
+          <h3 class="font-bold text-blue-900">2. Manage Sections (18 Official Sections)</h3>
+          <form onsubmit="handleAddSection(event)" class="grid grid-cols-3 gap-1.5">
+            <select id="newSecSubdivSelect" required class="border rounded px-2 py-1.5"><option value="">Subdiv</option></select>
+            <input type="text" id="newSecName" required placeholder="Section Name" class="border rounded px-2 py-1.5" />
+            <button type="submit" class="px-2 py-1.5 bg-blue-900 text-white font-bold rounded">Add</button>
+          </form>
+          <div id="adminSectionList" class="divide-y max-h-40 overflow-y-auto"></div>
         </div>
       </div>
-
-      <!-- Primary KPI Cards -->
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <div class="bg-white p-3.5 rounded-xl shadow-sm border-l-4 border-blue-700">
-          <div class="text-[11px] text-slate-500 font-bold uppercase">Total Issued</div>
-          <div id="kpiTotal" class="text-2xl font-extrabold text-blue-900 mt-1">0</div>
-        </div>
-        <div class="bg-white p-3.5 rounded-xl shadow-sm border-l-4 border-red-600">
-          <div class="text-[11px] text-red-600 font-bold uppercase flex items-center">
-            <span class="w-2 h-2 rounded-full bg-red-600 pulse-dot mr-1.5"></span> Active PTWs
-          </div>
-          <div id="kpiActive" class="text-2xl font-extrabold text-red-600 mt-1">0</div>
-        </div>
-        <div class="bg-white p-3.5 rounded-xl shadow-sm border-l-4 border-emerald-600">
-          <div class="text-[11px] text-emerald-700 font-bold uppercase">Closed (Line Clear)</div>
-          <div id="kpiClosed" class="text-2xl font-extrabold text-emerald-700 mt-1">0</div>
-        </div>
-        <div class="bg-white p-3.5 rounded-xl shadow-sm border-l-4 border-indigo-600">
-          <div class="text-[11px] text-indigo-700 font-bold uppercase">Recovered PTWs</div>
-          <div id="kpiRecovered" class="text-2xl font-extrabold text-indigo-700 mt-1">0</div>
-        </div>
-        <div class="bg-white p-3.5 rounded-xl shadow-sm border-l-4 border-amber-500">
-          <div class="text-[11px] text-amber-700 font-bold uppercase">Pending Recovery</div>
-          <div id="kpiPendingRec" class="text-2xl font-extrabold text-amber-600 mt-1">0</div>
-        </div>
-        <div class="bg-white p-3.5 rounded-xl shadow-sm border-l-4 border-rose-700">
-          <div class="text-[11px] text-rose-700 font-bold uppercase">Overdue PTWs</div>
-          <div id="kpiOverdue" class="text-2xl font-extrabold text-rose-700 mt-1">0</div>
+      <div class="bg-white rounded-xl border p-3 space-y-2">
+        <h3 class="font-bold text-red-700">3. Division Emergency Safety Broadcast</h3>
+        <div class="flex gap-2">
+          <input type="text" id="adminEmergencyInput" placeholder="Enter emergency alert for all staff (leave blank to clear)" class="flex-1 border rounded px-3 py-1.5" />
+          <button onclick="handleUpdateEmergencyBroadcast()" class="px-4 py-1.5 bg-red-600 text-white font-bold rounded">Broadcast</button>
         </div>
       </div>
+      <div class="bg-white rounded-xl border p-3">
+        <h3 class="font-bold text-blue-900 mb-2">4. Member Approvals & Roles</h3>
+        <div class="overflow-x-auto"><table class="w-full text-left"><thead class="bg-slate-100"><tr><th class="p-2">Name & Emp ID</th><th class="p-2">Mobile</th><th class="p-2">Subdiv / Section</th><th class="p-2">Status</th><th class="p-2 text-right">Action</th></tr></thead><tbody id="adminUsersTableBody" class="divide-y"></tbody></table></div>
+      </div>
+    </section>
+  </div>
 
-      <!-- Secondary Counters -->
-      <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 text-xs">
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-2.5 flex justify-between items-center">
-          <span class="font-semibold text-blue-900">Today's PTWs</span>
-          <span id="kpiTodayCount" class="font-extrabold text-base text-blue-900">0</span>
+  <!-- ISSUE PTW MODAL -->
+  <div id="issuePtwModal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-xl w-full p-4 space-y-3 text-xs">
+      <div class="flex justify-between border-b pb-2"><h3 class="font-extrabold text-red-700">ISSUE NEW LT LINE PTW</h3><button onclick="document.getElementById('issuePtwModal').classList.add('hidden')">✕</button></div>
+      <form onsubmit="handleIssuePtwSubmit(event)" class="space-y-2.5">
+        <div class="grid grid-cols-2 gap-2">
+          <select id="ptwSubdiv" required onchange="populateSectionDropdown('ptwSubdiv','ptwSection')" class="border rounded px-2.5 py-2"><option value="">Subdivision *</option></select>
+          <select id="ptwSection" required class="border rounded px-2.5 py-2"><option value="">Section *</option></select>
         </div>
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-2.5 flex justify-between items-center">
-          <span class="font-semibold text-blue-900">This Month</span>
-          <span id="kpiMonthCount" class="font-extrabold text-base text-blue-900">0</span>
+        <div class="grid grid-cols-3 gap-2">
+          <input type="text" id="ptwSubstation" required placeholder="Substation *" class="border rounded px-2.5 py-2" />
+          <input type="text" id="ptwFeederName" required placeholder="Feeder Name *" class="border rounded px-2.5 py-2" />
+          <select id="ptwCircuitNo" class="border rounded px-2.5 py-2"><option>Circuit No-1</option><option>Circuit No-2</option><option>Circuit No-3</option><option>Circuit No-4</option><option>Circuit No-5</option></select>
         </div>
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-2.5 flex justify-between items-center">
-          <span class="font-semibold text-blue-900">This Year</span>
-          <span id="kpiYearCount" class="font-extrabold text-base text-blue-900">0</span>
-        
+        <div class="grid grid-cols-2 gap-2">
+          <input type="text" id="ptwLocation" required placeholder="Work Location *" class="border rounded px-2.5 py-2" />
+          <input type="text" id="ptwNature" required placeholder="Nature of Work *" class="border rounded px-2.5 py-2" />
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <input type="text" id="ptwReceiverName" required placeholder="Lineman Name *" class="border rounded px-2.5 py-2" />
+          <input type="tel" id="ptwReceiverMobile" required pattern="[0-9]{10}" maxlength="10" placeholder="Lineman Mobile *" class="border rounded px-2.5 py-2" />
+          <input type="text" id="ptwAgency" required placeholder="Agency *" class="border rounded px-2.5 py-2" />
+        </div>
+        <label class="flex items-center space-x-2 bg-amber-50 p-2 rounded border"><input type="checkbox" required /> <span>Confirm Isolation, LOTO, Voltage Test, Earthing & PPE</span></label>
+        <button type="submit" class="w-full py-2.5 bg-red-600 text-white font-extrabold rounded-xl">GENERATE 6-DIGIT CODE & ISSUE PTW</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- CLOSE PTW MODAL -->
+  <div id="closePtwModal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3">
+    <div class="bg-white rounded-2xl max-w-md w-full p-4 space-y-3 text-xs">
+      <div class="flex justify-between border-b pb-2"><h3 class="font-extrabold text-emerald-800">CLOSE PTW (LINE CLEAR)</h3><button onclick="document.getElementById('closePtwModal').classList.add('hidden')">✕</button></div>
+      <div id="closePtwSummary" class="bg-slate-100 p-2 rounded font-bold"></div>
+      <form onsubmit="handleConfirmClosePtw(event)" class="space-y-2.5">
+        <input type="hidden" id="closePtwIdInput" />
+        <input type="text" id="closeVerifyCodeInput" required maxlength="6" placeholder="Enter 6-Digit PTW Code *" class="w-full border rounded px-3 py-2 text-center font-mono text-base font-bold" />
+        <div id="superAdminExceptionBox" class="hidden bg-purple-50 p-2 rounded border border-purple-200 space-y-1">
+          <div class="font-bold text-purple-900">Super Admin Exception Override</div>
+          <input type="password" id="closeSuperPassInput" placeholder="Enter Super Password" class="w-full border rounded px-2.5 py-1.5" />
+        </div>
+        <input type="text" id="closeRemarksInput" required placeholder="Closing Remarks (Men & Material Cleared) *" class="w-full border rounded px-3 py-2" />
+        <label class="flex items-center space-x-2"><input type="checkbox" required /> <span>All workers withdrawn & earthing removed</span></label>
+        <button type="submit" class="w-full py-2.5 bg-emerald-600 text-white font-bold rounded-xl">CONFIRM CLOSE & SEND SMS</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- PTW DETAIL & QR MODAL -->
+  <div id="ptwDetailModal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-xl w-full p-4 space-y-3 text-xs">
+      <div class="flex justify-between border-b pb-2"><h3 class="font-extrabold text-blue-900">PTW RECORD & 4-STAGE AUDIT TRAIL</h3><button onclick="document.getElementById('ptwDetailModal').classList.add('hidden')">✕</button></div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+        <div id="ptwDetailContent" class="sm:col-span-2 space-y-1"></div>
+        <div class="flex flex-col items-center p-2 bg-slate-50 rounded border">
+          <div id="ptwQrCanvas"></div>
+          <span class="text-[9px] text-slate-500 mt-1">Verification QR</span>
+        </div>
+      </div>
+      <div id="ptwTimelineContainer" class="space-y-1.5 border-t pt-2"></div>
+      <div class="text-right no-print"><button onclick="window.print()" class="px-3 py-1.5 bg-blue-900 text-white font-bold rounded">Print Record</button></div>
+    </div>
+  </div>
+
+  <!-- SMS MODAL -->
+  <div id="smsModal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3">
+    <div class="bg-white rounded-2xl max-w-md w-full p-4 space-y-3 text-xs">
+      <div class="flex justify-between border-b pb-2"><h3 class="font-bold text-blue-900">Mandatory SMS Notification</h3><button onclick="document.getElementById('smsModal').classList.add('hidden')">✕</button></div>
+      <div>Recipient: <strong id="smsModalRecipient"></strong></div>
+      <pre id="smsModalText" class="bg-slate-900 text-green-400 p-3 rounded-xl font-mono text-[11px] whitespace-pre-wrap"></pre>
+      <div class="grid grid-cols-2 gap-2">
+        <a id="smsNativeIntentBtn" href="#" class="py-2 bg-emerald-600 text-white font-bold rounded-lg text-center">Send Mobile SMS</a>
+        <button onclick="navigator.clipboard.writeText(document.getElementById('smsModalText').textContent);alert('Copied!');" class="py-2 bg-blue-100 text-blue-900 font-bold rounded-lg">Copy Text</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTIFICATIONS MODAL -->
+  <div id="notificationsModal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3">
+    <div class="bg-white rounded-2xl max-w-md w-full max-h-[75vh] flex flex-col p-4 text-xs">
+      <div class="flex justify-between border-b pb-2 mb-2"><h3 class="font-bold text-blue-900">Live Division Alerts</h3><button onclick="document.getElementById('notificationsModal').classList.add('hidden')">✕</button></div>
+      <div id="notificationsListContainer" class="flex-1 overflow-y-auto divide-y"></div>
+    </div>
+  </div>
+
+  <script>
+    // 1. INSTANT SUPER PASSWORD GENERATION
+    var generatedBootstrapSuperPass = "TPCODL-KDP-" + Math.random().toString(36).substring(2,6).toUpperCase() + "-" + Math.random().toString(36).substring(2,6).toUpperCase() + "-" + Math.random().toString(36).substring(2,6).toUpperCase();
+    document.getElementById("generatedSuperPassDisplay").textContent = generatedBootstrapSuperPass;
+
+    // Default TPCODL Kendrapara Division (KED-1) 4 Subdivisions & 18 Sections
+    var DEFAULT_SUBDIVS = {
+      kendrapara: { id: "kendrapara", name: "Kendrapara" },
+      pattamundai: { id: "pattamundai", name: "Pattamundai" },
+      marshaghai: { id: "marshaghai", name: "Marshaghai" },
+      rajnagar: { id: "rajnagar", name: "Rajnagar" }
+    };
+    var DEFAULT_SECTIONS = {
+      kendrapara_1: { id: "kendrapara_1", name: "Kendrapara-1", subdivision: "Kendrapara" },
+      kendrapara_2: { id: "kendrapara_2", name: "Kendrapara-2", subdivision: "Kendrapara" },
+      kendrapara_3: { id: "kendrapara_3", name: "Kendrapara-3", subdivision: "Kendrapara" },
+      derabish: { id: "derabish", name: "Derabish", subdivision: "Kendrapara" },
+      chhata: { id: "chhata", name: "Chhata", subdivision: "Kendrapara" },
+      indupur: { id: "indupur", name: "Indupur", subdivision: "Kendrapara" },
+      pattamundai_1: { id: "pattamundai_1", name: "Pattamundai-1", subdivision: "Pattamundai" },
+      pattamundai_2: { id: "pattamundai_2", name: "Pattamundai-2", subdivision: "Pattamundai" },
+      aul: { id: "aul", name: "Aul", subdivision: "Pattamundai" },
+      singiri: { id: "singiri", name: "Singiri", subdivision: "Pattamundai" },
+      bhuinpur: { id: "bhuinpur", name: "Bhuinpur", subdivision: "Pattamundai" },
+      marshaghai: { id: "marshaghai", name: "Marshaghai", subdivision: "Marshaghai" },
+      danpur: { id: "danpur", name: "Danpur", subdivision: "Marshaghai" },
+      patkura: { id: "patkura", name: "Patkura", subdivision: "Marshaghai" },
+      garadpur: { id: "garadpur", name: "Garadpur", subdivision: "Marshaghai" },
+      rajnagar_1: { id: "rajnagar_1", name: "Rajnagar-1", subdivision: "Rajnagar" },
+      patrapur: { id: "patrapur", name: "Patrapur", subdivision: "Rajnagar" },
+      talchua: { id: "talchua", name: "Talchua", subdivision: "Rajnagar" }
+    };
+
+    function showView(id) {
+      ["bootstrapView","authView","pendingApprovalView","mainAppView"].forEach(function(v) {
+        document.getElementById(v).classList.toggle("hidden", v !== id);
+      });
+    }
+
+    function showDiagAlert(msg) {
+      var bar = document.getElementById("diagAlertBar");
+      bar.textContent = msg;
+      bar.classList.remove("hidden");
+    }
+
+    function copySuperPasswordBootstrap() {
+      navigator.clipboard.writeText(generatedBootstrapSuperPass);
+      document.getElementById("chkCopiedSuper").checked = true;
+      alert("Super Password copied: " + generatedBootstrapSuperPass);
+    }
+
+    function downloadRecoveryKeyBootstrap() {
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob(["TPCODL KENDRAPARA SUPER PASSWORD: " + generatedBootstrapSuperPass], {type:"text/plain"}));
+      a.download = "TPCODL-SUPER-PASSWORD.txt";
+      a.click();
+      document.getElementById("chkDownloadedSuper").checked = true;
+    }
+
+    // 2. FIREBASE INITIALIZATION
+    var firebaseConfig = {
+      apiKey: "AIzaSyAsAibwqx0BfThQ6byOfuoqioL2l3I2los",
+      authDomain: "tpcodl-ked1-ptw.firebaseapp.com",
+      databaseURL: "https://tpcodl-ked1-ptw-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "tpcodl-ked1-ptw",
+      storageBucket: "tpcodl-ked1-ptw.firebasestorage.app",
+      messagingSenderId: "338883376559",
+      appId: "1:338883376559:web:2ce9d775a8c31d0d6d6b5a"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    var auth = firebase.auth();
+    var db = firebase.database();
+
+    var currentUserProfile = null, systemConfig = {}, subdivisionsMap = DEFAULT_SUBDIVS, sectionsMap = DEFAULT_SECTIONS, usersMap = {}, ptwsMap = {}, safetyReportsMap = {}, notificationsMap = {}, currentPtwTab = "ACTIVE";
+
+    function mobileToEmail(m) { return m.trim() + "@tpcodl-kendrapara.app"; }
+    function formatTpcodlDateTime(ts) {
+      if (!ts) return "-";
+      var d = new Date(ts), months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      var hr = d.getHours(), ampm = hr >= 12 ? "PM" : "AM"; hr = hr % 12 || 12;
+      return ("0"+d.getDate()).slice(-2) + " " + months[d.getMonth()] + " " + d.getFullYear() + ", " + ("0"+hr).slice(-2) + ":" + ("0"+d.getMinutes()).slice(-2) + " " + ampm;
+    }
+
+    refreshOrgDropdowns();
+
+    db.ref("system/superAdminInitialized").once("value").then(function(snap) {
+      if (snap.val() === true && !auth.currentUser) {
+        showView("authView");
+      }
+    }).catch(function(err) {
+      showDiagAlert("Database Notice: Please open Firebase -> Realtime Database -> Rules, set .read and .write to true, and tap Publish (" + err.message + ")");
+    });
+
+    db.ref("organization").on("value", function(snap) {
+      var data = snap.val();
+      if (data && data.subdivisions) subdivisionsMap = data.subdivisions;
+      if (data && data.sections) sectionsMap = data.sections;
+      refreshOrgDropdowns();
+      renderDashboard();
+      renderAdminOrg();
+    });
+
+    auth.onAuthStateChanged(function(user) {
+      if (!user) {
+        document.getElementById("headerUserControls").classList.add("hidden");
+        return;
+      }
+      db.ref("users/" + user.uid).on("value", function(uSnap) {
+        currentUserProfile = uSnap.val();
+        if (!currentUserProfile) return;
+        document.getElementById("headerUserControls").classList.remove("hidden");
+        document.getElementById("currentUserName").textContent = currentUserProfile.fullName;
+        document.getElementById("currentUserRole").textContent = currentUserProfile.role;
+        if (!currentUserProfile.approved && currentUserProfile.role !== "super_admin") {
+          showView("pendingApprovalView");
+          return;
+        }
+        showView("mainAppView");
+        document.getElementById("nav_admin").classList.toggle("hidden", currentUserProfile.role !== "super_admin");
+        renderProfileBox();
+        startLiveListeners();
+      });
+    });
+
+    function handleBootstrapSubmit(e) {
+      e.preventDefault();
+      var name = document.getElementById("saName").value.trim();
+      var mobile = document.getElementById("saMobile").value.trim();
+      var pass = document.getElementById("saLoginPassword").value;
+      auth.createUserWithEmailAndPassword(mobileToEmail(mobile), pass).then(function(cred) {
+        return db.ref("users/" + cred.user.uid).set({
+          uid: cred.user.uid, fullName: name, employeeId: document.getElementById("saEmpId").value.trim() || null,
+          mobile: mobile, designation: document.getElementById("saDesignation").value.trim(),
+          division: "Kendrapara", subdivision: "Division HQ", section: "Division HQ", role: "super_admin", approved: true
+        }).then(function() {
+          return db.ref("organization").set({ subdivisions: DEFAULT_SUBDIVS, sections: DEFAULT_SECTIONS });
+        }).then(function() {
+          return db.ref("system").set({ superAdminInitialized: true, superAdminUid: cred.user.uid, superPassPlainCheck: generatedBootstrapSuperPass });
+        });
+      }).catch(function(err) {
+        alert("Setup Error: " + err.message);
+      });
+    }
+
+    function switchAuthTab(t) {
+      document.getElementById("loginForm").classList.toggle("hidden", t !== "login");
+      document.getElementById("signupForm").classList.toggle("hidden", t === "login");
+      document.getElementById("tabLoginBtn").className = t === "login" ? "flex-1 py-3 border-b-2 border-blue-900 text-blue-900 bg-blue-50" : "flex-1 py-3 text-slate-500";
+      document.getElementById("tabSignupBtn").className = t !== "login" ? "flex-1 py-3 border-b-2 border-blue-900 text-blue-900 bg-blue-50" : "flex-1 py-3 text-slate-500";
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      auth.signInWithEmailAndPassword(mobileToEmail(document.getElementById("loginMobile").value), document.getElementById("loginPassword").value)
+        .catch(function(err) { alert("Login Error: " + err.message); });
+    }
+
+    function handleSignup(e) {
+      e.preventDefault();
+      var m = document.getElementById("regMobile").value.trim();
+      auth.createUserWithEmailAndPassword(mobileToEmail(m), document.getElementById("regPassword").value).then(function(cred) {
+        return db.ref("users/" + cred.user.uid).set({
+          uid: cred.user.uid, fullName: document.getElementById("regName").value.trim(),
+          employeeId: document.getElementById("regEmpId").value.trim() || null, mobile: m,
+          designation: document.getElementById("regDesignation").value.trim(), division: "Kendrapara",
+          subdivision: document.getElementById("regSubdivision").value, section: document.getElementById("regSection").value,
+          role: "ptw_issuer", approved: false
+        });
+      }).catch(function(err) { alert("Signup Error: " + err.message); });
+    }
+
+    function handleLogout() { auth.signOut().then(function() { showView("authView"); }); }
+
+    function startLiveListeners() {
+      db.ref("system").on("value", function(s) {
+        systemConfig = s.val() || {};
+        var banner = document.getElementById("emergencyBanner");
+        if (systemConfig.emergencyBroadcast) {
+          document.getElementById("emergencyBannerText").textContent = systemConfig.emergencyBroadcast;
+          banner.classList.remove("hidden");
+        } else {
+          banner.classList.add("hidden");
+        }
+      });
+      db.ref("users").on("value", function(s) { usersMap = s.val() || {}; renderDashboard(); renderAdminUsers(); });
+      db.ref("ptws").on("value", function(s) { ptwsMap = s.val() || {}; renderDashboard(); renderPtwTable(); renderRecoveryList(); });
+      db.ref("safety_reports").on("value", function(s) { safetyReportsMap = s.val() || {}; renderSafetyFeed(); });
+      db.ref("notifications").on("value", function(s) { notificationsMap = s.val() || {}; renderNotifications(); });
+    }
+
+    function refreshOrgDropdowns() {
+      var subs = Object.values(subdivisionsMap);
+      ["regSubdivision","ptwSubdiv","newSecSubdivSelect"].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.innerHTML = '<option value="">Select Subdivision</option>' + subs.map(function(s){ return '<option value="'+s.name+'">'+s.name+'</option>'; }).join("");
+      });
+    }
+
+    function populateSectionDropdown(subId, secId) {
+      var subVal = document.getElementById(subId).value;
+      var secs = Object.values(sectionsMap).filter(function(s){ return !subVal || s.subdivision === subVal; });
+      document.getElementById(secId).innerHTML = '<option value="">Select Section</option>' + secs.map(function(s){ return '<option value="'+s.name+'">'+s.name+'</option>'; }).join("");
+    }
+
+    function renderDashboard() {
+      var all = Object.values(ptwsMap);
+      document.getElementById("kpiTotal").textContent = all.length;
+      document.getElementById("kpiActive").textContent = all.filter(function(p){return p.status==="ACTIVE";}).length;
+      document.getElementById("kpiClosed").textContent = all.filter(function(p){return p.status!=="ACTIVE";}).length;
+      document.getElementById("kpiRecovered").textContent = all.filter(function(p){return p.status==="RECOVERED";}).length;
+      document.getElementById("kpiPendingRec").textContent = all.filter(function(p){return p.status==="CLOSED";}).length;
+      document.getElementById("kpiTotalMembers").textContent = Object.values(usersMap).filter(function(u){return u.approved;}).length;
+
+      document.getElementById("subdivBreakdownContainer").innerHTML = Object.values(subdivisionsMap).map(function(sd) {
+        var act = all.filter(function(p){return p.subdivision===sd.name && p.status==="ACTIVE";}).length;
+        var tot = all.filter(function(p){return p.subdivision===sd.name;}).length;
+        return '<div class="flex justify-between p-2 bg-slate-50 rounded border"><b>'+sd.name+'</b><span><span class="text-red-600 font-bold mr-2">Active: '+act+'</span>Total: '+tot+'</span></div>';
+      }).join("");
+
+      document.getElementById("sectionBreakdownContainer").innerHTML = Object.values(sectionsMap).map(function(sc) {
+        var act = all.filter(function(p){return p.section===sc.name && p.status==="ACTIVE";}).length;
+        var tot = all.filter(function(p){return p.section===sc.name;}).length;
+        return '<div class="flex justify-between p-2 bg-slate-50 rounded border"><span><b>'+sc.name+'</b> <span class="text-slate-400">('+sc.subdivision+')</span></span><span><span class="text-red-600 font-bold mr-2">Active: '+act+'</span>Total: '+tot+'</span></div>';
+      }).join("");
+    }
+
+    function handleIssuePtwSubmit(e) {
+      e.preventDefault();
+      var code6 = String(Math.floor(100000 + Math.random() * 900000));
+      var now = Date.now(), tStr = formatTpcodlDateTime(now);
+      var sec = document.getElementById("ptwSection").value;
+      var feeder = document.getElementById("ptwFeederName").value.trim() + " (" + document.getElementById("ptwCircuitNo").value + ")";
+      var loc = document.getElementById("ptwLocation").value.trim();
+      var lineman = document.getElementById("ptwReceiverName").value.trim();
+      var mobile = document.getElementById("ptwReceiverMobile").value.trim();
+
+      var sms = "TPCODL LT LINE PTW ISSUED\nPTW Code: " + code6 + "\nDiv: Kendrapara | Sec: " + sec + "\nFeeder: " + feeder + "\nLoc: " + loc + "\nLineman: " + lineman + "\nIssued By: " + currentUserProfile.fullName + "\nTime: " + tStr + "\nStatus: LINE SHUTDOWN ACTIVE";
+
+      var ref = db.ref("ptws").push();
+      ref.set({
+        id: ref.key, ptwCode: code6, division: "Kendrapara", subdivision: document.getElementById("ptwSubdiv").value,
+        section: sec, substation: document.getElementById("ptwSubstation").value.trim(), feeder: feeder, location: loc,
+        natureOfWork: document.getElementById("ptwNature").value.trim(), issuerUid: currentUserProfile.uid,
+        issuerName: currentUserProfile.fullName, receiverName: lineman, receiverMobile: mobile,
+        agencyName: document.getElementById("ptwAgency").value.trim(), issuedAt: now, issuedTimeFormatted: tStr, status: "ACTIVE"
+      }).then(function() {
+        db.ref("notifications").push().set({ message: "PTW #" + code6 + " ISSUED in " + sec + " (" + feeder + ") by " + currentUserProfile.fullName, timeFormatted: tStr, createdAt: now });
+        document.getElementById("issuePtwModal").classList.add("hidden");
+        document.getElementById("smsModalRecipient").textContent = mobile;
+        document.getElementById("smsModalText").textContent = sms;
+        document.getElementById("smsNativeIntentBtn").href = "sms:" + mobile + "?body=" + encodeURIComponent(sms);
+        document.getElementById("smsModal").classList.remove("hidden");
+      });
+    }
+
+    function setPtwTab(t) {
+      currentPtwTab = t;
+      ["ACTIVE","CLOSED","RECOVERED"].forEach(function(id) {
+        document.getElementById("tabBtn_" + id).className = id === t ? "px-3 py-1 rounded bg-blue-900 text-white" : "px-3 py-1 rounded bg-slate-200 text-slate-700";
+      });
+      renderPtwTable();
+    }
+
+    function renderPtwTable() {
+      var q = (document.getElementById("globalPtwSearch").value || "").toLowerCase();
+      var list = Object.values(ptwsMap).filter(function(p) {
+        return p.status === currentPtwTab && (p.ptwCode+" "+p.section+" "+p.feeder+" "+p.receiverName).toLowerCase().includes(q);
+      }).sort(function(a,b){ return b.issuedAt - a.issuedAt; });
+      document.getElementById("ptwTableBody").innerHTML = list.length === 0 ? '<tr><td colspan="6" class="p-4 text-center text-slate-400">No PTW records in this tab.</td></tr>' :
+        list.map(function(p) {
+          return '<tr><td class="p-2.5 font-mono font-bold text-blue-900">#'+p.ptwCode+'</td><td class="p-2.5"><b>'+p.section+'</b><br/>'+p.feeder+'</td><td class="p-2.5">Issuer: '+p.issuerName+'<br/>Lineman: '+p.receiverName+'</td><td class="p-2.5">'+p.issuedTimeFormatted+'</td><td class="p-2.5 font-bold">'+p.status+'</td><td class="p-2.5 text-right space-x-1"><button onclick="openPtwDetailModal(\''+p.id+'\')" class="px-2 py-1 bg-slate-200 rounded font-bold">View</button>'+(p.status==="ACTIVE"?'<button onclick="openCloseModal(\''+p.id+'\')" class="px-2.5 py-1 bg-emerald-600 text-white rounded font-bold">Close</button>':'')+'</td></tr>';
+        }).join("");
+    }
+
+    function openPtwDetailModal(id) {
+      var p = ptwsMap[id];
+      if (!p) return;
+      document.getElementById("ptwDetailContent").innerHTML =
+        '<div><b>6-Digit PTW Code:</b> #' + p.ptwCode + '</div>' +
+        '<div><b>Subdiv / Section:</b> ' + p.subdivision + ' / ' + p.section + '</div>' +
+        '<div><b>Substation & Feeder:</b> ' + p.substation + ' - ' + p.feeder + '</div>' +
+        '<div><b>Location & Work:</b> ' + p.location + ' (' + p.natureOfWork + ')</div>' +
+        '<div><b>Issuer:</b> ' + p.issuerName + ' | <b>Lineman:</b> ' + p.receiverName + ' (' + p.receiverMobile + ')</div>';
+      var qrBox = document.getElementById("ptwQrCanvas");
+      qrBox.innerHTML = "";
+      new QRCode(qrBox, { text: "TPCODL-KED1-PTW:" + p.ptwCode + "|SEC:" + p.section, width: 96, height: 96 });
+      document.getElementById("ptwTimelineContainer").innerHTML =
+        '<div class="p-2 rounded bg-emerald-50 border border-emerald-200"><b>1. ISSUED:</b> ' + p.issuedTimeFormatted + ' by ' + p.issuerName + '</div>' +
+        '<div class="p-2 rounded ' + (p.closedAt ? 'bg-emerald-50 border border-emerald-200' : 'bg-slate-50 text-slate-400') + '"><b>2. CLOSED:</b> ' + (p.closedTimeFormatted || 'Pending') + (p.closedByName ? ' by ' + p.closedByName : '') + '</div>' +
+        '<div class="p-2 rounded ' + (p.recoveredAt ? 'bg-emerald-50 border border-emerald-200' : 'bg-slate-50 text-slate-400') + '"><b>3. RECOVERED:</b> ' + (p.recoveredTimeFormatted || 'Pending') + (p.recoveredByName ? ' by ' + p.recoveredByName : '') + '</div>';
+      document.getElementById("ptwDetailModal").classList.remove("hidden");
+    }
+
+    function openCloseModal(id) {
+      var p = ptwsMap[id];
+      var isOriginal = p.issuerUid === currentUserProfile.uid;
+      if (!isOriginal && currentUserProfile.role !== "super_admin") {
+        alert("Only the original PTW Issuer (" + p.issuerName + ") or Single Super Admin can close this PTW!");
+        return;
+      }
+      document.getElementById("closePtwIdInput").value = id;
+      document.getElementById("closePtwSummary").textContent = "PTW #" + p.ptwCode + " | " + p.section + " (" + p.feeder + ")";
+      document.getElementById("superAdminExceptionBox").classList.toggle("hidden", isOriginal);
+      document.getElementById("closePtwModal").classList.remove("hidden");
+    }
+
+    function handleConfirmClosePtw(e) {
+      e.preventDefault();
+      var p = ptwsMap[document.getElementById("closePtwIdInput").value];
+      if (document.getElementById("closeVerifyCodeInput").value.trim() !== p.ptwCode) {
+        alert("Wrong 6-Digit PTW Code!");
+        return;
+      }
+      if (p.issuerUid !== currentUserProfile.uid) {
+        if (document.getElementById("closeSuperPassInput").value.trim() !== systemConfig.superPassPlainCheck) {
+          alert("Invalid Super Password for Exception Closing!");
+          return;
+        }
+      }
+      var now = Date.now(), cStr = formatTpcodlDateTime(now);
+      var sms = "TPCODL LT LINE PTW CLOSED\nPTW Code: " + p.ptwCode + "\nSec: " + p.section + " | Feeder: " + p.feeder + "\nClosed By: " + currentUserProfile.fullName + "\nClosed Time: " + cStr + "\nStatus: LINE CLEAR / ENERGIZED";
+      db.ref("ptws/" + p.id).update({ status: "CLOSED", closedAt: now, closedTimeFormatted: cStr, closedByName: currentUserProfile.fullName, closingRemarks: document.getElementById("closeRemarksInput").value.trim() }).then(function() {
+        db.ref("notifications").push().set({ message: "PTW #" + p.ptwCode + " CLOSED (LINE CLEAR) in " + p.section + " by " + currentUserProfile.fullName, timeFormatted: cStr, createdAt: now });
+        document.getElementById("closePtwModal").classList.add("hidden");
+        document.getElementById("smsModalRecipient").textContent = p.receiverMobile;
+        document.getElementById("smsModalText").textContent = sms;
+        document.getElementById("smsNativeIntentBtn").href = "sms:" + p.receiverMobile + "?body=" + encodeURIComponent(sms);
+        document.getElementById("smsModal").classList.remove("hidden");
+      });
+    }
+
+    function renderRecoveryList() {
+      document.getElementById("pendingRecoveryListContainer").innerHTML = Object.values(ptwsMap).filter(function(p){return p.status==="CLOSED";}).map(function(p) {
+        return '<div class="p-2.5 border rounded flex justify-between items-center"><span><b>#'+p.ptwCode+'</b> - '+p.section+' ('+p.feeder+')</span><button onclick="recoverPtw(\''+p.id+'\')" class="px-3 py-1 bg-indigo-600 text-white rounded font-bold">Recover</button></div>';
+      }).join("") || "No closed PTWs pending recovery.";
+    }
+    function recoverPtw(id) {
+      var now = Date.now();
+      db.ref("ptws/"+id).update({ status: "RECOVERED", recoveredAt: now, recoveredTimeFormatted: formatTpcodlDateTime(now), recoveredByName: currentUserProfile.fullName });
+    }
+
+    function exportReportExcel() {
+      var ws = XLSX.utils.json_to_sheet(Object.values(ptwsMap));
+      var wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Kendrapara_PTW");
+      XLSX.writeFile(wb, "TPCODL_Kendrapara_PTW_" + Date.now() + ".xlsx");
+    }
+    function exportReportPdf() {
+      var doc = new window.jspdf.jsPDF();
+      doc.text("TPCODL KENDRAPARA DIVISION - PTW REPORT", 14, 14);
+      doc.autoTable({ startY: 20, head: [["Code","Section","Feeder","Lineman","Issued","Status"]], body: Object.values(ptwsMap).map(function(p){return [p.ptwCode,p.section,p.feeder,p.receiverName,p.issuedTimeFormatted,p.status];}) });
+      doc.save("TPCODL_Kendrapara_PTW_" + Date.now() + ".pdf");
+    }
+
+    function handleSafetySubmit(e) {
+      e.preventDefault();
+      db.ref("safety_reports").push().set({ category: document.getElementById("safCategory").value, location: document.getElementById("safLocation").value, description: document.getElementById("safDesc").value, by: currentUserProfile.fullName, timeFormatted: formatTpcodlDateTime(Date.now()) });
+      e.target.reset();
+    }
+    function renderSafetyFeed() {
+      document.getElementById("safetyFeedList").innerHTML = Object.values(safetyReportsMap).map(function(s){ return '<div class="p-2 border rounded"><b>['+s.category+'] '+s.location+'</b> ('+(s.timeFormatted||'')+'): '+s.description+'</div>'; }).join("") || "No safety observations logged yet.";
+    }
+
+    function renderProfileBox() {
+      if (!currentUserProfile) return;
+      document.getElementById("profileInfoBox").innerHTML = '<div><b>Full Name:</b> ' + currentUserProfile.fullName + '</div><div><b>Mobile:</b> ' + currentUserProfile.mobile + '</div><div><b>Role:</b> ' + currentUserProfile.role.toUpperCase() + '</div>';
+      document.getElementById("profEmpIdInput").value = currentUserProfile.employeeId || "";
+    }
+    function updateProfileEmpId() {
+      db.ref("users/" + currentUserProfile.uid).update({ employeeId: document.getElementById("profEmpIdInput").value.trim() || null }).then(function(){ alert("Employee ID Saved!"); });
+    }
+
+    function handleAddSubdiv(e) {
+      e.preventDefault(); var n = document.getElementById("newSubdivName").value.trim(), id = n.toLowerCase().replace(/[^a-z0-9]/g,"_");
+      db.ref("organization/subdivisions/"+id).set({ id:id, name:n }); document.getElementById("newSubdivName").value = "";
+    }
+    function handleAddSection(e) {
+      e.preventDefault(); var sub = document.getElementById("newSecSubdivSelect").value, n = document.getElementById("newSecName").value.trim(), id = n.toLowerCase().replace(/[^a-z0-9]/g,"_");
+      db.ref("organization/sections/"+id).set({ id:id, name:n, subdivision:sub }); document.getElementById("newSecName").value = "";
+    }
+    function handleUpdateEmergencyBroadcast() {
+      var msg = document.getElementById("adminEmergencyInput").value.trim();
+      db.ref("system/emergencyBroadcast").set(msg || null);
+    }
+    function exportFullJsonBackup() {
+      db.ref("/").once("value").then(function(snap) {
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob([JSON.stringify(snap.val(),null,2)],{type:"application/json"}));
+        a.download = "TPCODL_KENDRAPARA_BACKUP_" + Date.now() + ".json";
+        a.click();
+      });
+    }
+    function renderAdminOrg() {
+      document.getElementById("adminSubdivList").innerHTML = Object.values(subdivisionsMap).map(function(s){ return '<div class="py-1 font-bold">'+s.name+'</div>'; }).join("");
+      document.getElementById("adminSectionList").innerHTML = Object.values(sectionsMap).map(function(s){ return '<div class="py-1"><b>'+s.name+'</b> ('+s.subdivision+')</div>'; }).join("");
+    }
+    function renderAdminUsers() {
+      document.getElementById("adminUsersTableBody").innerHTML = Object.values(usersMap).map(function(u) {
+        return '<tr><td class="p-2"><b>'+u.fullName+'</b> ('+(u.employeeId||'No ID')+')</td><td class="p-2">'+u.mobile+'</td><td class="p-2">'+u.subdivision+' / '+u.section+'</td><td class="p-2">'+(u.approved?"Approved":"Pending")+'</td><td class="p-2 text-right">'+(u.role!=="super_admin"?'<button onclick="toggleUser(\''+u.uid+'\','+(!u.approved)+')" class="px-2 py-1 bg-blue-900 text-white rounded">'+(u.approved?"Revoke":"Approve")+'</button>':'')+'</td></tr>';
+      }).join("");
+    }
+    function toggleUser(uid, st) { db.ref("users/"+uid).update({ approved: st }); }
+    function renderNotifications() {
+      var list = Object.values(notificationsMap).sort(function(a,b){ return b.createdAt - a.createdAt; }).slice(0, 25);
+      var badge = document.getElementById("notifCountBadge");
+      badge.textContent = list.length;
+      badge.classList.toggle("hidden", list.length === 0);
+      document.getElementById("notificationsListContainer").innerHTML = list.map(function(n){ return '<div class="py-2"><b>'+n.message+'</b><div class="text-[10px] text-slate-400">'+n.timeFormatted+'</div></div>'; }).join("");
+    }
+    function openNotificationsModal() { document.getElementById("notificationsModal").classList.remove("hidden"); }
+    function switchMainTab(t) {
+      ["dashboard","ptwList","recovery","reports","safety","profile","admin"].forEach(function(id){
+        document.getElementById("sec_"+id).classList.toggle("hidden", id !== t);
+        var btn = document.getElementById("nav_"+id);
+        if (btn) btn.className = id === t ? "px-3 py-1.5 rounded-lg bg-blue-900 text-white" : (id === "admin" ? "px-3 py-1.5 rounded-lg bg-purple-100 text-purple-900" : "px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700");
+      });
+    }
+  </script>
+</body>
+</html>
