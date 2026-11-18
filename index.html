@@ -11,7 +11,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <!-- Firebase v9 Compat SDK (100% Mobile-Safe, Zero Module Freeze) -->
+  <!-- Firebase v9 Compat SDK (100% Mobile & Desktop Safe) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -63,7 +63,7 @@
   <!-- DIAGNOSTIC ALERT BAR -->
   <div id="diagAlertBar" class="hidden bg-amber-100 border-b border-amber-300 text-amber-950 px-4 py-2 text-xs font-semibold text-center"></div>
 
-  <!-- 1. INITIAL SUPER ADMIN SETUP (OPENS INSTANTLY) -->
+  <!-- 1. INITIAL SUPER ADMIN SETUP -->
   <div id="bootstrapView" class="flex-1 flex items-center justify-center p-3">
     <div class="max-w-lg w-full bg-white rounded-2xl shadow-xl border p-5">
       <div class="flex items-center justify-between mb-3">
@@ -420,9 +420,9 @@
       document.getElementById("chkDownloadedSuper").checked = true;
     }
 
-    // 2. FIREBASE INITIALIZATION
+    // 2. VERIFIED FIREBASE INITIALIZATION
     var firebaseConfig = {
-      apiKey: "AIzaSyAsAibwqx0BfThQ6byOfuoqioL2l3I2los",
+      apiKey: "AIzaSyAsA1bwqx0BfINQ4by0EuoqioL2l3I2los",
       authDomain: "tpcodl-ked1-ptw.firebaseapp.com",
       databaseURL: "https://tpcodl-ked1-ptw-default-rtdb.asia-southeast1.firebasedatabase.app",
       projectId: "tpcodl-ked1-ptw",
