@@ -456,14 +456,18 @@
     });
 
     db.ref("organization").on("value", function(snap) {
-      var data = snap.val();
-      if (data && data.subdivisions) subdivisionsMap = data.subdivisions;
-      if (data && data.sections) sectionsMap = data.sections;
-      refreshOrgDropdowns();
-      renderDashboard();
-      renderAdminOrg();
-    });
-
+  var data = snap.val();
+  if (data) {
+    subdivisionsMap = data.subdivisions || {};
+    sectionsMap = data.sections || {};
+  } else if (currentUserProfile) {
+    subdivisionsMap = {};
+    sectionsMap = {};
+  }
+  refreshOrgDropdowns();
+  renderDashboard();
+  renderAdminOrg();
+});
     auth.onAuthStateChanged(function(user) {
       if (!user) {
         document.getElementById("headerUserControls").classList.add("hidden");
@@ -754,9 +758,59 @@
       });
     }
     function renderAdminOrg() {
-      document.getElementById("adminSubdivList").innerHTML = Object.values(subdivisionsMap).map(function(s){ return '<div class="py-1 font-bold">'+s.name+'</div>'; }).join("");
-      document.getElementById("adminSectionList").innerHTML = Object.values(sectionsMap).map(function(s){ return '<div class="py-1"><b>'+s.name+'</b> ('+s.subdivision+')</div>'; }).join("");
-    }
+  var subKeys = Object.keys(subdivisionsMap);
+  document.getElementById("adminSubdivList").innerHTML = subKeys.length ? subKeys.map(function(key) {
+    var s = subdivisionsMap[key];
+    var safeKey = key.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+    return '<div class="py-1.5 flex items-center justify-between gap-2"><span class="font-bold">' + s.name + '</span><button type="button" onclick="deleteSubdiv(\'' + safeKey + '\')" class="px-2 py-0.5 bg-red-100 hover:bg-red-600 text-red-700 hover:text-white rounded text-[11px] font-bold"><i class="fa-solid fa-trash mr-1"></i>Delete</button></div>';
+  }).join("") : '<div class="py-2 text-slate-400">No subdivisions added.</div>';
+
+  var secKeys = Object.keys(sectionsMap);
+  document.getElementById("adminSectionList").innerHTML = secKeys.length ? secKeys.map(function(key) {
+    var s = sectionsMap[key];
+    var safeKey = key.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+    return '<div class="py-1.5 flex items-center justify-between gap-2"><span><b>' + s.name + '</b> <span class="text-slate-500">(' + s.subdivision + ')</span></span><button type="button" onclick="deleteSection(\'' + safeKey + '\')" class="px-2 py-0.5 bg-red-100 hover:bg-red-600 text-red-700 hover:text-white rounded text-[11px] font-bold"><i class="fa-solid fa-trash mr-1"></i>Delete</button></div>';
+  }).join("") : '<div class="py-2 text-slate-400">No sections added.</div>';
+}
+
+function deleteSubdiv(key) {
+  if (!currentUserProfile || currentUserProfile.role !== "super_admin") return;
+  var sub = subdivisionsMap[key];
+  if (!sub) return;
+  var linkedSecKeys = Object.keys(sectionsMap).filter(function(k) {
+    return sectionsMap[k] && sectionsMap[k].subdivision === sub.name;
+  });
+  var activePtws = Object.values(ptwsMap).filter(function(p) {
+    return p.subdivision === sub.name && p.status === "ACTIVE";
+  }).length;
+  var msg = 'Delete Subdivision "' + sub.name + '"?';
+  if (linkedSecKeys.length > 0) msg += '\n\nWarning: ' + linkedSecKeys.length + ' linked Section(s) under this subdivision will also be deleted.';
+  if (activePtws > 0) msg += '\nALERT: ' + activePtws + ' ACTIVE PTW(s) are currently open in this subdivision!';
+  msg += '\n(Old PTW audit records will remain safe.)';
+  if (!confirm(msg)) return;
+  var updates = {};
+  updates["subdivisions/" + key] = null;
+  linkedSecKeys.forEach(function(secKey) { updates["sections/" + secKey] = null; });
+  db.ref("organization").update(updates).catch(function(err) {
+    alert("Delete Error: " + err.message);
+  });
+}
+
+function deleteSection(key) {
+  if (!currentUserProfile || currentUserProfile.role !== "super_admin") return;
+  var sec = sectionsMap[key];
+  if (!sec) return;
+  var activePtws = Object.values(ptwsMap).filter(function(p) {
+    return p.section === sec.name && p.status === "ACTIVE";
+  }).length;
+  var msg = 'Delete Section "' + sec.name + '" (' + sec.subdivision + ')?';
+  if (activePtws > 0) msg += '\n\nALERT: ' + activePtws + ' ACTIVE PTW(s) are currently open in this section!';
+  msg += '\n(Old PTW audit records will remain safe.)';
+  if (!confirm(msg)) return;
+  db.ref("organization/sections/" + key).remove().catch(function(err) {
+    alert("Delete Error: " + err.message);
+  });
+}
     function renderAdminUsers() {
       document.getElementById("adminUsersTableBody").innerHTML = Object.values(usersMap).map(function(u) {
         return '<tr><td class="p-2"><b>'+u.fullName+'</b> ('+(u.employeeId||'No ID')+')</td><td class="p-2">'+u.mobile+'</td><td class="p-2">'+u.subdivision+' / '+u.section+'</td><td class="p-2">'+(u.approved?"Approved":"Pending")+'</td><td class="p-2 text-right">'+(u.role!=="super_admin"?'<button onclick="toggleUser(\''+u.uid+'\','+(!u.approved)+')" class="px-2 py-1 bg-blue-900 text-white rounded">'+(u.approved?"Revoke":"Approve")+'</button>':'')+'</td></tr>';
